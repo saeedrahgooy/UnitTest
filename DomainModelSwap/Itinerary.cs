@@ -16,10 +16,15 @@ namespace DomainModel
         public DateTime ArrivalDate { get; private set; }
         public string OriginCityCode { get; private set; }
         public string ArrivalCityCode { get; private set; }
+        public int InfantCount { get; set; }
+        public int Child { get; set; }
+        public int AdultCount { get; set; }
+        public int SeniorCitizenCount { get; set; }
         private readonly IItineraryDomainService _repo;
-        public Itinerary(string originAirportCode, string arrivalAirportCode
+        public Itinerary(IItineraryDomainService repo, string originAirportCode, string arrivalAirportCode
             , DateTime departureDate, DateTime arrivalDate, string originCityCode
-            , string arrivalCityCode, IItineraryDomainService repo)
+            , string arrivalCityCode, int infantCount,int seniorCitizenCount,
+            int adultCount,int child)
         {
             if (originAirportCode == arrivalAirportCode)
             {
@@ -29,13 +34,35 @@ namespace DomainModel
             {
                 throw new ODTimeException(departureDate, arrivalDate);
             }
+            
+            //Forbidden AirportList
             var forbiddenODS = repo.GetForbiddenODs();
+
+            if(forbiddenODS.Any(x=>x.ArrivalAirportCode == arrivalAirportCode 
+            && x.OriginAirportCode == originAirportCode) || 
+            forbiddenODS.Any(x => x.ArrivalAirportCode == originAirportCode
+            && x.OriginAirportCode == arrivalAirportCode))
+            {
+                throw new ForbiddenODException(originAirportCode,arrivalAirportCode);
+            }
+            if(infantCount > seniorCitizenCount + adultCount + child)
+            {
+                throw new Exception("Too Many Infant");
+            }
+            if (infantCount + seniorCitizenCount + adultCount + child > 9)
+            {
+                throw new Exception("Too Many Passenger");
+            }
             OriginAirportCode = originAirportCode;
             ArrivalAirportCode = arrivalAirportCode;
             DepartureDate = departureDate;
             ArrivalDate = arrivalDate;
             OriginCityCode = originCityCode;
             ArrivalCityCode = arrivalCityCode;
+            InfantCount = infantCount;
+            AdultCount = adultCount;
+            SeniorCitizenCount = seniorCitizenCount;
+            Child = child;
             _repo = repo;
         }
     }
