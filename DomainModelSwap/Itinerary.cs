@@ -21,7 +21,8 @@ namespace DomainModel
         public int AdultCount { get; set; }
         public int SeniorCitizenCount { get; set; }
         private readonly IItineraryDomainService _repo;
-        public Itinerary(IItineraryDomainService repo, string originAirportCode, string arrivalAirportCode
+        public Itinerary(IItineraryDomainService repo, string originAirportCode
+            , string arrivalAirportCode
             , DateTime departureDate, DateTime arrivalDate, string originCityCode
             , string arrivalCityCode, int infantCount,int seniorCitizenCount,
             int adultCount,int child)
@@ -34,7 +35,14 @@ namespace DomainModel
             {
                 throw new ODTimeException(departureDate, arrivalDate);
             }
-            
+            if (infantCount > seniorCitizenCount + adultCount + child)
+            {
+                throw new Exception("Too Many Infant");
+            }
+            if (infantCount + seniorCitizenCount + adultCount + child > 9)
+            {
+                throw new Exception("Too Many Passenger");
+            }
             //Forbidden AirportList
             var forbiddenODS = repo.GetForbiddenODs();
 
@@ -45,14 +53,7 @@ namespace DomainModel
             {
                 throw new ForbiddenODException(originAirportCode,arrivalAirportCode);
             }
-            if(infantCount > seniorCitizenCount + adultCount + child)
-            {
-                throw new Exception("Too Many Infant");
-            }
-            if (infantCount + seniorCitizenCount + adultCount + child > 9)
-            {
-                throw new Exception("Too Many Passenger");
-            }
+            
             OriginAirportCode = originAirportCode;
             ArrivalAirportCode = arrivalAirportCode;
             DepartureDate = departureDate;
